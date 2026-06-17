@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>District App – F&B Prototype V3</title>
+  <style>
+    /* ─── Reset & Layout ──────────────────────────────────── */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #e8ecef;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    #frame {
+      width: 390px;
+      height: 844px;
+      max-height: 100vh;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── Screen Shell ────────────────────────────────────── */
+    .scr {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: #fff;
+      transition: transform .35s ease;
+    }
+
+    #s2 { transform: translateX(100%); }
+
+    .scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 76px;
+    }
+
+    /* ─── Header ──────────────────────────────────────────── */
+    .hdr {
+      background: #111;
+      color: #fff;
+      padding: 16px 20px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .hdr.green { background: #2E7D32; }
+
+    /* ─── Movie Info Bar ──────────────────────────────────── */
+    .movie-bar {
+      padding: 15px 20px;
+      background: #fafafa;
+      border-bottom: 1px solid #eee;
+    }
+
+    .movie-bar h2 {
+      margin: 0 0 4px;
+      font-size: 17px;
+      font-weight: 800;
+      color: #111;
+    }
+
+    .movie-bar p {
+      margin: 0;
+      font-size: 13px;
+      color: #777;
+    }
+
+    /* ─── Trust Banner ────────────────────────────────────── */
+    .trust {
+      background: #E8F5E9;
+      color: #1B5E20;
+      padding: 10px 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ─── Menu Sections ───────────────────────────────────── */
+    .sec {
+      padding: 16px 20px;
+      border-bottom: 8px solid #f4f4f4;
+      background: #fff;
+    }
+
+    .sec-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0 0 14px;
+      color: #111;
+    }
+
+    /* ─── Menu Item Row ───────────────────────────────────── */
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+      gap: 12px;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .item-info h4 {
+      margin: 0 0 3px;
+      font-size: 14px;
+      color: #111;
+    }
+
+    .item-info p {
+      margin: 0;
+      font-size: 12px;
+      color: #888;
+      line-height: 1.4;
+    }
+
+    /* ─── Price Row ───────────────────────────────────────── */
+    .pr-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 5px;
+    }
+
+    .pr  { font-weight: 700; font-size: 14px; color: #111; }
+    .op  { text-decoration: line-through; color: #bbb; font-size: 12px; }
+    .sv  { background: #FFEBEE; color: #C62828; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+
+    /* ─── Add Button ──────────────────────────────────────── */
+    .add-btn {
+      background: #fff;
+      border: 1.5px solid #E53935;
+      color: #E53935;
+      padding: 7px 15px;
+      border-radius: 7px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background .15s, color .15s;
+    }
+
+    .add-btn.on {
+      background: #E53935;
+      color: #fff;
+    }
+
+    /* ─── Sticky Checkout Bar (Screen 1) ──────────────────── */
+    .sticky {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      padding: 14px 20px;
+      box-shadow: 0 -3px 10px rgba(0, 0, 0, .09);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+      z-index: 10;
+    }
+
+    /* Price block hidden until items are added */
+    .sticky .pb { display: none; }
+    .sticky.has-items .pb { display: block; }
+    .sticky.has-items .pay { width: 52%; }
+
+    .pb-total { font-size: 17px; font-weight: 800; color: #111; }
+    .pb-label  { font-size: 11px; color: #888; display: block; }
+
+    .pay {
+      background: #E53935;
+      color: #fff;
+      border: none;
+      padding: 13px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+    }
+
+    .pay.amber { background: #FFB300; color: #111; }
+
+    /* ─── Digital Ticket Card ─────────────────────────────── */
+    .ticket {
+      background: #fff;
+      margin: 18px;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
+      border-top: 4px solid #E53935;
+    }
+
+    .ticket-title {
+      margin: 0 0 3px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #111;
+    }
+
+    .ticket-venue {
+      margin: 0;
+      font-size: 12px;
+      color: #777;
+    }
+
+    .ticket-time {
+      margin: 5px 0 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: #111;
+    }
+
+    .ticket-seats {
+      margin: 0;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .qr {
+      width: 100%;
+      height: 100px;
+      background: #eee;
+      margin: 14px 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #bbb;
+      font-size: 13px;
+      font-style: italic;
+    }
+
+    /* ─── F&B Receipt Card ────────────────────────────────── */
+    .receipt {
+      background: #fff;
+      margin: 0 18px 14px;
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid #C8E6C9;
+      display: none;
+    }
+
+    .receipt-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .receipt-head h4  { margin: 0; color: #2E7D32; font-size: 13px; font-weight: 700; }
+    .receipt-head span { font-size: 11px; color: #666; }
+
+    .receipt-items { font-size: 12px; color: #444; margin: 0 0 6px; line-height: 1.5; }
+    .receipt-total { font-size: 13px; color: #111; font-weight: 700; margin: 0 0 8px; }
+    .pickup        { font-size: 11px; color: #C62828; font-weight: 700; margin: 0; }
+
+    /* ─── Order More Banner ───────────────────────────────── */
+    .order-more {
+      background: #1a1a2e;
+      margin: 0 18px 14px;
+      border-radius: 12px;
+      padding: 15px 16px;
+      border: 1px solid rgba(255, 179, 0, .2);
+      display: none;
+    }
+
+    .om-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .om-tag {
+      background: #FFB300;
+      color: #111;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    .om-close {
+      background: rgba(255, 255, 255, .1);
+      border: none;
+      color: #fff;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .om-title { color: #fff; font-size: 14px; font-weight: 700; margin: 0 0 4px; }
+    .om-sub   { color: #bbb; font-size: 12px; margin: 0 0 13px; line-height: 1.4; }
+
+    /* Horizontal scroll rail of item chips */
+    .om-items {
+      display: flex;
+      gap: 9px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .om-chip {
+      background: rgba(255, 255, 255, .07);
+      border: 1px solid rgba(255, 179, 0, .25);
+      border-radius: 9px;
+      padding: 10px 11px;
+      flex-shrink: 0;
+      min-width: 108px;
+    }
+
+    .om-chip h5 { margin: 0 0 2px; font-size: 12px; color: #fff; font-weight: 600; }
+    .om-chip p  { margin: 0 0 7px; font-size: 10px; color: #aaa; }
+
+    .om-chip-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+
+    .om-chip-pr { font-size: 13px; font-weight: 700; color: #FFB300; }
+    .om-chip-sv { font-size: 9px; color: #66BB6A; font-weight: 600; }
+
+    .om-add {
+      background: #FFB300;
+      color: #111;
+      border: none;
+      padding: 5px 0;
+      border-radius: 5px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .om-add.on { background: #4CAF50; color: #fff; }
+
+    .om-cta {
+      width: 100%;
+      background: #E53935;
+      color: #fff;
+      border: none;
+      padding: 11px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 13px;
+      box-sizing: border-box;
+    }
+
+    .om-cta:disabled { background: #444; color: #888; cursor: not-allowed; }
+
+    /* ─── First-time F&B Entry Banner ─────────────────────── */
+    /*
+     * display:none here is intentional — JS overrides to display:flex.
+     * align-items is ignored while hidden but applied correctly on show.
+     */
+    .fnb-entry {
+      background: #111;
+      margin: 0 18px 14px;
+      border-radius: 12px;
+      padding: 14px;
+      display: none;
+      align-items: center;
+      gap: 13px;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    .fnb-entry h4 { margin: 0 0 3px; font-size: 13px; color: #FFB300; }
+    .fnb-entry p  { margin: 0; font-size: 11px; color: #ddd; line-height: 1.4; }
+
+    .fnb-icon { font-size: 22px; flex-shrink: 0; }
+    .fnb-text { flex: 1; }
+
+    .fnb-arr {
+      background: #333;
+      padding: 9px;
+      border-radius: 50%;
+      display: flex;
+      flex-shrink: 0;
+    }
+
+    /* ─── Sheet Overlay ───────────────────────────────────── */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, .6);
+      z-index: 20;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .3s;
+    }
+
+    .overlay.open { opacity: 1; visibility: visible; }
+
+    /* ─── Bottom Sheet ────────────────────────────────────── */
+    .sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 78%;
+      background: #fff;
+      z-index: 30;
+      border-radius: 16px 16px 0 0;
+      transform: translateY(100%);
+      transition: transform .35s cubic-bezier(.25, .8, .25, 1);
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+    }
+
+    .sheet.open { transform: translateY(0); }
+
+    .sh-hdr {
+      padding: 18px 20px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .cl-btn {
+      background: #f0f0f0;
+      border: none;
+      padding: 7px 13px;
+      border-radius: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .sh-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+
+    .sh-foot {
+      padding: 14px 20px;
+      border-top: 1px solid #eee;
+      background: #fff;
+      flex-shrink: 0;
+    }
+
+    .sh-pay {
+      width: 100%;
+      background: #E53935;
+      color: #fff;
+      border: none;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .sh-pay:disabled { background: #ccc; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<div id="frame">
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 1 — Review Booking / F&B Selection
+       ═══════════════════════════════════════════ -->
+  <section id="s1" class="scr" aria-label="Review Booking">
+    <header class="hdr">Review Booking</header>
+
+    <div class="scroll">
+      <div class="movie-bar">
+        <h2>Kalki 2898 AD (3D)</h2>
+        <p>PVR Director's Cut &bull; Today, 7:30 PM</p>
+      </div>
+
+      <p class="trust">🛡️ Theatre pricing guaranteed. No hidden markups.</p>
+
+      <!-- Best-Selling Combos -->
+      <section class="sec" aria-label="Best-Selling Combos">
+        <h3 class="sec-title">Best-Selling Combos</h3>
+
+        <div class="item">
+          <div class="item-info">
+            <h4>Couples Blockbuster</h4>
+            <p>Large Salted Popcorn + 2 Coke</p>
+            <div class="pr-row">
+              <span class="pr">₹650</span>
+              <span class="op">₹800</span>
+              <span class="sv">Save ₹150</span>
+            </div>
+          </div>
+          <button class="add-btn" onclick="toggleItem(this, 650, 'Couples Blockbuster', 'checkout')">+ Add</button>
+        </div>
+
+        <div class="item">
+          <div class="item-info">
+            <h4>Solo Classic</h4>
+            <p>Medium Popcorn + 1 Pepsi</p>
+            <div class="pr-row">
+              <span class="pr">₹320</span>
+              <span class="op">₹400</span>
+              <span class="sv">Save ₹80</span>
+            </div>
+          </div>
+          <button class="add-btn" onclick="toggleItem(this, 320, 'Solo Classic', 'checkout')">+ Add</button>
+        </div>
+      </section>
+
+      <!-- Snacks -->
+      <section class="sec" aria-label="Snacks">
+        <h3 class="sec-title">Snacks</h3>
+
+        <div class="item">
+          <div class="item-info">
+            <h4>Cheese Nachos &amp; Dip</h4>
+            <p>House-made cheese sauce</p>
+            <div class="pr-row"><span class="pr">₹200</span></div>
+          </div>
+          <button class="add-btn" onclick="toggleItem(this, 200, 'Cheese Nachos', 'checkout')">+ Add</button>
+        </div>
+
+        <div class="item">
+          <div class="item-info">
+            <h4>Masala Chai + Khari</h4>
+            <p>Hot tea with salted pastry sticks</p>
+            <div class="pr-row"><span class="pr">₹120</span></div>
+          </div>
+          <button class="add-btn" onclick="toggleItem(this, 120, 'Masala Chai + Khari', 'checkout')">+ Add</button>
+        </div>
+
+        <div class="item">
+          <div class="item-info">
+            <h4>Caramel Popcorn</h4>
+            <p>Small tub, lightly salted caramel</p>
+            <div class="pr-row">
+              <span class="pr">₹180</span>
+              <span class="op">₹220</span>
+              <span class="sv">Save ₹40</span>
+            </div>
+          </div>
+          <button class="add-btn" onclick="toggleItem(this, 180, 'Caramel Popcorn', 'checkout')">+ Add</button>
+        </div>
+
+        <div class="item">
+          <div class="item-info">
+            <h4>Chilli Paneer Wrap</h4>
+            <p>Grilled flatbread with spiced paneer</p>
+            <div class="pr-row"><span class="pr">₹260</span></div>
+          </div>
+          <button class="add-btn" onclick="toggleItem(this, 260, 'Chilli Paneer Wrap', 'checkout')">+ Add</button>
+        </div>
+      </section>
+
+      <!-- Beverages -->
+      <section class="sec" aria-label="Beverages">
+        <h3 class="sec-title">Beverages</h3>
+
+        <div class="item">
+          <div class="item-info">
+            <h4>Cold Coffee</h4>
+            <p>Chilled, lightly sweetened</p>
+            <div class="pr-row"><span class="pr">₹150</span></div>
+          </div>
+          <button class="add-btn" onclick="toggleItem(this, 150, 'Cold Coffee', 'checkout')">+ Add</button>
+        </div>
+
+        <div class="item">
+          <div class="item-info">
+            <h4>Iced Tea (Lemon)</h4>
+            <p>Freshly brewed, served chilled</p>
+            <div class="pr-row"><span class="pr">₹130</span></div>
+          </div>
+          <button class="add-btn" onclick="toggleItem(this, 130, 'Iced Tea', 'checkout')">+ Add</button>
+        </div>
+      </section>
+    </div><!-- /.scroll -->
+
+    <!-- Sticky checkout bar -->
+    <div class="sticky" id="bar1">
+      <div class="pb">
+        <span class="pb-total" id="bar1-total">₹800</span>
+        <span class="pb-label">Tickets + snacks</span>
+      </div>
+      <button class="pay amber" id="bar1-btn" onclick="handleCheckoutTap()">
+        🍿 Add Snacks &amp; Skip Queue
+      </button>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 2 — Booking Confirmed / Digital Ticket
+       ═══════════════════════════════════════════ -->
+  <section id="s2" class="scr" aria-label="Booking Confirmed">
+    <header class="hdr green">Booking Confirmed ✓</header>
+
+    <div class="scroll">
+
+      <!-- Digital ticket -->
+      <article class="ticket">
+        <h2 class="ticket-title">Kalki 2898 AD (3D)</h2>
+        <p class="ticket-venue">PVR Director's Cut &bull; Screen 4</p>
+        <p class="ticket-time">Today, 7:30 PM</p>
+        <div class="qr" role="img" aria-label="QR code placeholder">Scan at Cinema Entrance</div>
+        <p class="ticket-seats">Seats: <strong>G12, G13</strong></p>
+      </article>
+
+      <!-- F&B receipt — shown after any successful order -->
+      <div class="receipt" id="fnb-receipt" aria-live="polite">
+        <div class="receipt-head">
+          <h4>🍿 F&amp;B Order #8892</h4>
+          <span>Paid</span>
+        </div>
+        <p class="receipt-items" id="receipt-items"></p>
+        <p class="receipt-total" id="receipt-total"></p>
+        <p class="pickup">Collect at the 'App Orders' counter</p>
+      </div>
+
+      <!-- Order More banner — shown only when user ordered at checkout -->
+      <div class="order-more" id="order-more">
+        <div class="om-top">
+          <span class="om-tag">🏷️ Better Prices</span>
+          <button class="om-close" onclick="dismissOrderMore()">✕ Dismiss</button>
+        </div>
+        <p class="om-title">Want more? Get interval deals!</p>
+        <p class="om-sub">These items are cheaper when ordered in-app vs. at the counter.</p>
+
+        <div class="om-items">
+          <div class="om-chip">
+            <h5>Nachos &amp; Dip</h5>
+            <p>House cheese sauce</p>
+            <div class="om-chip-row">
+              <span class="om-chip-pr">₹180</span>
+              <span class="om-chip-sv">Save ₹20</span>
+            </div>
+            <button class="om-add" onclick="toggleOrderMore(this, 180, 'Nachos &amp; Dip')">+ Add</button>
+          </div>
+
+          <div class="om-chip">
+            <h5>Caramel Popcorn</h5>
+            <p>Small tub</p>
+            <div class="om-chip-row">
+              <span class="om-chip-pr">₹160</span>
+              <span class="om-chip-sv">Save ₹20</span>
+            </div>
+            <button class="om-add" onclick="toggleOrderMore(this, 160, 'Caramel Popcorn')">+ Add</button>
+          </div>
+
+          <div class="om-chip">
+            <h5>Cold Coffee</h5>
+            <p>Chilled</p>
+            <div class="om-chip-row">
+              <span class="om-chip-pr">₹130</span>
+              <span class="om-chip-sv">Save ₹20</span>
+            </div>
+            <button class="om-add" onclick="toggleOrderMore(this, 130, 'Cold Coffee')">+ Add</button>
+          </div>
+
+          <div class="om-chip">
+            <h5>Iced Tea</h5>
+            <p>Lemon, chilled</p>
+            <div class="om-chip-row">
+              <span class="om-chip-pr">₹110</span>
+              <span class="om-chip-sv">Save ₹20</span>
+            </div>
+            <button class="om-add" onclick="toggleOrderMore(this, 110, 'Iced Tea')">+ Add</button>
+          </div>
+        </div>
+
+        <button class="om-cta" id="om-cta" disabled onclick="payOrderMore()">
+          Select items to add
+        </button>
+      </div>
+
+      <!-- First-time entry banner — shown only when user skipped at checkout -->
+      <div class="fnb-entry" id="fnb-entry" role="button" tabindex="0" onclick="toggleSheet(true)">
+        <span class="fnb-icon">🍿</span>
+        <div class="fnb-text">
+          <h4>Order snacks now — save more!</h4>
+          <p>Skip the queue. Pick up on your way in or at the interval.</p>
+        </div>
+        <span class="fnb-arr">➔</span>
+      </div>
+
+    </div><!-- /.scroll -->
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       BOTTOM SHEET — Post-booking F&B menu
+       ═══════════════════════════════════════════ -->
+  <div class="overlay" id="overlay" onclick="toggleSheet(false)"></div>
+
+  <div class="sheet" id="sheet" role="dialog" aria-label="Theatre F&B Menu">
+    <div class="sh-hdr">
+      Theatre F&amp;B Menu
+      <button class="cl-btn" onclick="toggleSheet(false)">✕ Close</button>
+    </div>
+
+    <div class="sh-body">
+      <p class="trust" style="border-radius: 6px; margin-bottom: 14px;">
+        🏷️ Exclusive in-app discounts applied
+      </p>
+
+      <div class="item">
+        <div class="item-info">
+          <h4>Interval Saver Combo</h4>
+          <p>Medium Popcorn + 1 Iced Tea</p>
+          <div class="pr-row">
+            <span class="pr">₹350</span>
+            <span class="sv">Save ₹50</span>
+          </div>
+        </div>
+        <button class="add-btn" onclick="toggleItem(this, 350, 'Interval Saver Combo', 'sheet')">+ Add</button>
+      </div>
+
+      <div class="item">
+        <div class="item-info">
+          <h4>Cheese Nachos &amp; Dip</h4>
+          <p>House-made cheese sauce</p>
+          <div class="pr-row"><span class="pr">₹200</span></div>
+        </div>
+        <button class="add-btn" onclick="toggleItem(this, 200, 'Cheese Nachos', 'sheet')">+ Add</button>
+      </div>
+
+      <div class="item">
+        <div class="item-info">
+          <h4>Masala Chai + Khari</h4>
+          <p>Hot tea with salted pastry sticks</p>
+          <div class="pr-row"><span class="pr">₹120</span></div>
+        </div>
+        <button class="add-btn" onclick="toggleItem(this, 120, 'Masala Chai + Khari', 'sheet')">+ Add</button>
+      </div>
+    </div>
+
+    <div class="sh-foot">
+      <button class="sh-pay" id="sh-pay" disabled onclick="paySheet()">
+        Select items to order
+      </button>
+    </div>
+  </div>
+
+</div><!-- /#frame -->
+
+<script>
+  /* ─── State ─────────────────────────────────────────────── */
+  const TICKET_BASE = 800;
+
+  // Each cart: { total: number, items: string[] }
+  const cart = {
+    checkout: { total: 0, items: [] },
+    sheet:    { total: 0, items: [] },
+    more:     { total: 0, items: [] },
+  };
+
+  /* ─── DOM refs (cached once) ────────────────────────────── */
+  const $ = id => document.getElementById(id);
+
+  const els = {
+    s1:           $('s1'),
+    s2:           $('s2'),
+    bar1:         $('bar1'),
+    bar1Total:    $('bar1-total'),
+    bar1Btn:      $('bar1-btn'),
+    receipt:      $('fnb-receipt'),
+    receiptItems: $('receipt-items'),
+    receiptTotal: $('receipt-total'),
+    orderMore:    $('order-more'),
+    omCta:        $('om-cta'),
+    fnbEntry:     $('fnb-entry'),
+    overlay:      $('overlay'),
+    sheet:        $('sheet'),
+    shPay:        $('sh-pay'),
+  };
+
+  /* ─── Generic cart toggle ───────────────────────────────── */
+  /**
+   * Toggles an item in a named cart and flips the button's added state.
+   * @param {HTMLButtonElement} btn
+   * @param {number}            price
+   * @param {string}            name
+   * @param {'checkout'|'sheet'|'more'} cartKey
+   */
+  function cartToggle(btn, price, name, cartKey) {
+    const c = cart[cartKey];
+    const isAdded = btn.classList.toggle('on');
+    if (isAdded) {
+      c.total += price;
+      c.items.push(name);
+      btn.textContent = 'Added ✓';
+    } else {
+      c.total -= price;
+      c.items = c.items.filter(n => n !== name);
+      btn.textContent = '+ Add';
+    }
+  }
+
+  /* ─── Sync a pay button's label and disabled state ─────── */
+  /**
+   * @param {HTMLButtonElement} btn
+   * @param {number}            total
+   * @param {{ active: string, idle: string }} labels
+   */
+  function syncPayBtn(btn, total, labels) {
+    btn.disabled = total === 0;
+    btn.textContent = total > 0 ? labels.active(total) : labels.idle;
+  }
+
+  /* ─── Screen 1 — Menu item toggle ──────────────────────── */
+  function toggleItem(btn, price, name, ctx) {
+    cartToggle(btn, price, name, ctx);
+    if (ctx === 'checkout') syncCheckoutBar();
+    else syncSheetPay();
+  }
+
+  /* ─── Screen 1 — Update sticky checkout bar ────────────── */
+  function syncCheckoutBar() {
+    const { total } = cart.checkout;
+    els.bar1Total.textContent = '₹' + (TICKET_BASE + total);
+
+    if (total > 0) {
+      els.bar1.classList.add('has-items');
+      els.bar1Btn.className = 'pay';
+      els.bar1Btn.textContent = 'Pay ₹' + (TICKET_BASE + total);
+      els.bar1Btn.onclick = goToConfirmation;
+    } else {
+      els.bar1.classList.remove('has-items');
+      els.bar1Btn.className = 'pay amber';
+      els.bar1Btn.innerHTML = '🍿 Add Snacks &amp; Skip Queue';
+      els.bar1Btn.onclick = handleCheckoutTap;
+    }
+  }
+
+  /* ─── Screen 1 — CTA tap handler ───────────────────────── */
+  /**
+   * First tap with no items: morph button into a "skip" confirmation.
+   * Second tap (or first tap with items): proceed.
+   */
+  function handleCheckoutTap() {
+    if (cart.checkout.total === 0) {
+      els.bar1Btn.textContent = 'Skip snacks — Pay ₹' + TICKET_BASE;
+      els.bar1Btn.onclick = goToConfirmation;
+    } else {
+      goToConfirmation();
+    }
+  }
+
+  /* ─── Screen transition: Booking → Confirmed ────────────── */
+  function goToConfirmation() {
+    els.s1.style.transform = 'translateX(-100%)';
+    els.s2.style.transform = 'translateX(0)';
+    renderConfirmationScreen();
+  }
+
+  /* ─── Screen 2 — Render correct post-booking state ─────── */
+  function renderConfirmationScreen() {
+    const hasOrder = cart.checkout.total > 0;
+
+    // Receipt
+    if (hasOrder) {
+      updateReceiptUI(cart.checkout.items, cart.checkout.total);
+      els.receipt.style.display = 'block';
+    }
+
+    // Order More banner vs. first-time entry banner
+    els.orderMore.style.display = hasOrder ? 'block' : 'none';
+    els.fnbEntry.style.display  = hasOrder ? 'none'  : 'flex';
+  }
+
+  /* ─── Shared receipt updater ────────────────────────────── */
+  function updateReceiptUI(items, total) {
+    els.receiptItems.textContent = items.map(n => '1x ' + n).join(', ');
+    els.receiptTotal.textContent = 'Total paid: ₹' + total;
+  }
+
+  /* ─── Order More — item toggle ──────────────────────────── */
+  function toggleOrderMore(btn, price, name) {
+    cartToggle(btn, price, name, 'more');
+    syncPayBtn(els.omCta, cart.more.total, {
+      active: t => 'Pay ₹' + t + ' & add to order',
+      idle:   'Select items to add',
+    });
+  }
+
+  /* ─── Order More — pay & merge into receipt ─────────────── */
+  function payOrderMore() {
+    simulatePayment(els.omCta, () => {
+      const merged = { items: [...cart.checkout.items, ...cart.more.items], total: cart.checkout.total + cart.more.total };
+      updateReceiptUI(merged.items, merged.total);
+      cart.checkout.items = merged.items;
+      cart.checkout.total = merged.total;
+      cart.more = { total: 0, items: [] };
+      els.orderMore.style.display = 'none';
+    });
+  }
+
+  function dismissOrderMore() {
+    els.orderMore.style.display = 'none';
+  }
+
+  /* ─── Bottom Sheet — open / close ───────────────────────── */
+  function toggleSheet(open) {
+    els.overlay.classList.toggle('open', open);
+    els.sheet.classList.toggle('open', open);
+  }
+
+  /* ─── Bottom Sheet — item toggle ────────────────────────── */
+  // toggleItem handles 'sheet' context above, syncSheetPay updates CTA
+  function syncSheetPay() {
+    syncPayBtn(els.shPay, cart.sheet.total, {
+      active: t => 'Pay ₹' + t + ' & add to ticket',
+      idle:   'Select items to order',
+    });
+  }
+
+  /* ─── Bottom Sheet — pay ────────────────────────────────── */
+  function paySheet() {
+    simulatePayment(els.shPay, () => {
+      toggleSheet(false);
+      updateReceiptUI(cart.sheet.items, cart.sheet.total);
+      els.receipt.style.display = 'block';
+      els.fnbEntry.style.display = 'none';
+    });
+  }
+
+  /* ─── Shared payment simulation ─────────────────────────── */
+  /**
+   * Shows a "Processing…" state on the button, then fires a callback
+   * after a short delay to simulate a network round-trip.
+   * @param {HTMLButtonElement} btn
+   * @param {Function}          onSuccess
+   * @param {number}            [delay=800]
+   */
+  function simulatePayment(btn, onSuccess, delay = 800) {
+    btn.textContent = 'Processing…';
+    btn.disabled = true;
+    setTimeout(onSuccess, delay);
+  }
+</script>
+
+</body>
+</html>
